@@ -1,24 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <!-- Golden Crescent Moon -->
-    <path
-        android:fillColor="#FFD700"
-        android:pathData="M52,30 C64,30 74,40 74,52 C74,62 67,70 58,73 C56,73.6 54,72 55,70 C60,65 62,58 60,51 C58,44 52,38 45,36 C43,35.5 43,33.5 45,33 C47.2,30.8 49.5,30 52,30 Z" />
-    <!-- Guiding Star -->
-    <path
-        android:fillColor="#FFE082"
-        android:pathData="M66,35 L67.5,39 L71.5,39 L68.2,41.2 L69.5,45.2 L66,42.8 L62.5,45.2 L63.8,41.2 L60.5,39 L64.5,39 Z" />
-    <!-- Mosque Dome Silhouette -->
-    <path
-        android:fillColor="#E0F2F1"
-        android:pathData="M54,54 C47,54 42,60 42,68 L66,68 C66,60 61,54 54,54 Z" />
-    <!-- Minaret & Base -->
-    <path
-        android:fillColor="#B2DFDB"
-        android:pathData="M38,62 L40,62 L40,78 L38,78 Z M37,60 L41,60 L39,56 Z M34,76 L74,76 L74,79 L34,79 Z" />
-</vector>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:width="72dp"
+        android:height="72dp"
+        android:drawable="@drawable/app_logo"
+        android:gravity="center" />
+</layer-list>

@@ -18,15 +18,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.model.AppLanguage
 import com.example.model.SavedMosque
 import com.example.model.AppPreferences
 import com.example.model.ImsakVisibility
 import com.example.model.NumeralSystem
 import com.example.model.PrayerType
 import com.example.ui.theme.*
+import com.example.ui.util.AppStrings
 import com.example.ui.viewmodel.PrayerTvUiState
 
 @Composable
@@ -66,13 +69,16 @@ fun SettingsScreen(
                 .padding(horizontal = 16.dp, vertical = 14.dp)
                 .padding(bottom = 90.dp) // Leave clearance for floating bottom bar
         ) {
-            // Header with Menu Button & Back Button
+            // Header with Menu Button, Back Button, and Quick Language Switcher
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     // Menu Button (Opens Drawer from Settings)
                     val menuInteraction = remember { MutableInteractionSource() }
                     val isMenuFocused by menuInteraction.collectIsFocusedAsState()
@@ -84,7 +90,9 @@ fun SettingsScreen(
                         ),
                         shape = RoundedCornerShape(8.dp),
                         interactionSource = menuInteraction,
-                        modifier = Modifier.focusable(interactionSource = menuInteraction)
+                        modifier = Modifier
+                            .testTag("btn_settings_menu")
+                            .focusable(interactionSource = menuInteraction)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Menu,
@@ -93,7 +101,7 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "القائمة",
+                            text = AppStrings.menu(draftPrefs.language),
                             color = if (isMenuFocused) colors.screenBackground else colors.textPrimary,
                             fontWeight = FontWeight.Bold
                         )
@@ -110,7 +118,9 @@ fun SettingsScreen(
                         ),
                         shape = RoundedCornerShape(8.dp),
                         interactionSource = backInteraction,
-                        modifier = Modifier.focusable(interactionSource = backInteraction)
+                        modifier = Modifier
+                            .testTag("btn_settings_back")
+                            .focusable(interactionSource = backInteraction)
                     ) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
@@ -119,15 +129,48 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "الرئيسية",
+                            text = AppStrings.home(draftPrefs.language),
                             color = if (isBackFocused) colors.screenBackground else colors.textPrimary,
                             fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    // Header Fast Language Switcher Button
+                    val headerLangInteraction = remember { MutableInteractionSource() }
+                    val isHeaderLangFocused by headerLangInteraction.collectIsFocusedAsState()
+
+                    Button(
+                        onClick = {
+                            val nextLang = if (draftPrefs.language == AppLanguage.ARABIC) AppLanguage.ENGLISH else AppLanguage.ARABIC
+                            draftPrefs = draftPrefs.copy(language = nextLang)
+                            onSavePreferences(draftPrefs.copy(language = nextLang))
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isHeaderLangFocused) colors.focusGlow else colors.cardElevatedBackground
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        interactionSource = headerLangInteraction,
+                        modifier = Modifier
+                            .testTag("btn_header_language_toggle")
+                            .focusable(interactionSource = headerLangInteraction)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Language,
+                            contentDescription = "Toggle Language",
+                            tint = if (isHeaderLangFocused) colors.screenBackground else colors.goldAccent
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = if (draftPrefs.language == AppLanguage.ARABIC) "English 🇬🇧" else "العربية 🇸🇦",
+                            color = if (isHeaderLangFocused) colors.screenBackground else colors.textPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
                         )
                     }
                 }
 
                 Text(
-                    text = "الإعدادات العامة ⚙️",
+                    text = "${AppStrings.tabSettings(draftPrefs.language)} ⚙️",
                     color = colors.goldAccent,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
@@ -136,7 +179,142 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Card 1: Active Mosque URL / Slug setup (Fast samples row removed as requested)
+            // =========================================================================
+            // CARD 1: DEDICATED APPLICATION LANGUAGE SWITCHER (MANDATORY & UNMISSABLE)
+            // =========================================================================
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(colors.cardBackground)
+                    .border(1.5.dp, colors.goldAccent.copy(alpha = 0.6f), RoundedCornerShape(14.dp))
+                    .padding(16.dp)
+            ) {
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Language,
+                                contentDescription = "Language",
+                                tint = colors.goldAccent,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = AppStrings.languageCardTitle(draftPrefs.language),
+                                color = colors.goldAccent,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        // Badge indicating active selection
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(colors.primaryAccent.copy(alpha = 0.2f))
+                                .border(1.dp, colors.primaryAccent, RoundedCornerShape(6.dp))
+                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = if (draftPrefs.language == AppLanguage.ARABIC) "اللغة الحالية: العربية 🇸🇦" else "Current: English 🇬🇧",
+                                color = colors.primaryAccent,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = AppStrings.languageCardSubtitle(draftPrefs.language),
+                        color = colors.textSecondary,
+                        fontSize = 11.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        AppLanguage.entries.forEach { lang ->
+                            val isSelected = draftPrefs.language == lang
+                            val btnInteraction = remember { MutableInteractionSource() }
+                            val isBtnFocused by btnInteraction.collectIsFocusedAsState()
+
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(
+                                        when {
+                                            isBtnFocused -> colors.focusGlow
+                                            isSelected -> colors.primaryAccent.copy(alpha = 0.2f)
+                                            else -> colors.cardElevatedBackground
+                                        }
+                                    )
+                                    .border(
+                                        width = if (isBtnFocused) 2.dp else if (isSelected) 2.dp else 1.dp,
+                                        color = if (isBtnFocused) colors.focusGlow else if (isSelected) colors.primaryAccent else colors.cardBorder,
+                                        shape = RoundedCornerShape(10.dp)
+                                    )
+                                    .clickable(interactionSource = btnInteraction, indication = null) {
+                                        draftPrefs = draftPrefs.copy(language = lang)
+                                        onSavePreferences(draftPrefs.copy(language = lang))
+                                    }
+                                    .focusable(interactionSource = btnInteraction)
+                                    .testTag(if (lang == AppLanguage.ARABIC) "btn_lang_ar" else "btn_lang_en")
+                                    .padding(vertical = 12.dp, horizontal = 16.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = if (lang == AppLanguage.ARABIC) "🇸🇦" else "🇬🇧",
+                                            fontSize = 20.sp
+                                        )
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Column {
+                                            Text(
+                                                text = if (lang == AppLanguage.ARABIC) "العربية (Arabic)" else "English (الإنجليزية)",
+                                                color = if (isBtnFocused) colors.screenBackground else if (isSelected) colors.goldAccent else colors.textPrimary,
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = if (lang == AppLanguage.ARABIC) "واجهة عربية من اليمين لليسار" else "Left-to-right English interface",
+                                                color = if (isBtnFocused) colors.screenBackground.copy(alpha = 0.8f) else colors.textMuted,
+                                                fontSize = 10.sp
+                                            )
+                                        }
+                                    }
+
+                                    if (isSelected) {
+                                        Icon(
+                                            imageVector = Icons.Default.CheckCircle,
+                                            contentDescription = "Selected",
+                                            tint = if (isBtnFocused) colors.screenBackground else colors.primaryAccent,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Card 2: Active Mosque URL / Slug setup
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -147,14 +325,14 @@ fun SettingsScreen(
             ) {
                 Column {
                     Text(
-                        text = "رابط أو رمز المسجد النشط (Mawaqit Mosque URL):",
+                        text = AppStrings.mosqueUrlTitle(draftPrefs.language),
                         color = colors.textPrimary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "يمكنك إدخال الرابط الكامل أو الاسم المختصر (Slug) للمسجد النشط حالياً.",
+                        text = AppStrings.mosqueUrlSubtitle(draftPrefs.language),
                         color = colors.textSecondary,
                         fontSize = 11.sp
                     )
@@ -183,7 +361,7 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Card 2: Saved Mosques & Quick Switching (المساجد المحفوظة والتبديل بينها)
+            // Card 3: Saved Mosques & Quick Switching
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -200,13 +378,13 @@ fun SettingsScreen(
                     ) {
                         Column {
                             Text(
-                                text = "المساجد المحفوظة والتبديل السريع 🕌",
+                                text = AppStrings.savedMosquesTitle(draftPrefs.language),
                                 color = colors.goldAccent,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "يمكنك حفظ عدة مساجد والتبديل الفوري بينها في أي وقت.",
+                                text = AppStrings.savedMosquesSubtitle(draftPrefs.language),
                                 color = colors.textSecondary,
                                 fontSize = 11.sp
                             )
@@ -465,7 +643,7 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Card 2: Appearance & Numeral System
+            // Card 4: Appearance, Theme & Numeral System
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -476,12 +654,53 @@ fun SettingsScreen(
             ) {
                 Column {
                     Text(
-                        text = "المظهر ونظام الأرقام:",
+                        text = AppStrings.appearanceTitle(draftPrefs.language),
                         color = colors.textPrimary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(10.dp))
+
+                    // Language Quick Selection inside Appearance
+                    Column {
+                        Text(
+                            text = AppStrings.languageSetting(draftPrefs.language),
+                            color = colors.textSecondary,
+                            fontSize = 13.sp
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            AppLanguage.entries.forEach { lang ->
+                                val isSelected = draftPrefs.language == lang
+                                val langInteraction = remember { MutableInteractionSource() }
+                                val isLangFocused by langInteraction.collectIsFocusedAsState()
+
+                                Button(
+                                    onClick = {
+                                        draftPrefs = draftPrefs.copy(language = lang)
+                                        onSavePreferences(draftPrefs.copy(language = lang))
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (isLangFocused) colors.focusGlow else if (isSelected) colors.primaryAccent else colors.cardElevatedBackground
+                                    ),
+                                    shape = RoundedCornerShape(6.dp),
+                                    interactionSource = langInteraction,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .focusable(interactionSource = langInteraction)
+                                ) {
+                                    Text(
+                                        text = if (lang == AppLanguage.ARABIC) "العربية 🇸🇦 (Arabic)" else "English 🇬🇧 (الإنجليزية)",
+                                        color = if (isLangFocused) colors.screenBackground else if (isSelected) Color.White else colors.textPrimary,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     // Dark / Light Mode Switch
                     Row(
@@ -490,7 +709,7 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = if (draftPrefs.isDarkMode) "الوضع الليلي (Dark Mode)" else "الوضع الفاتح (Light Mode)",
+                            text = if (draftPrefs.isDarkMode) AppStrings.darkModeLabel(draftPrefs.language) else AppStrings.lightModeLabel(draftPrefs.language),
                             color = colors.textSecondary,
                             fontSize = 13.sp
                         )
@@ -513,7 +732,7 @@ fun SettingsScreen(
                     // Numeral System: Arabic vs Eastern Arabic Indic
                     Column {
                         Text(
-                            text = "تنسيق عرض الأرقام (Numeral System):",
+                            text = AppStrings.numeralSystemLabel(draftPrefs.language),
                             color = colors.textSecondary,
                             fontSize = 13.sp
                         )
@@ -530,7 +749,7 @@ fun SettingsScreen(
                                     modifier = Modifier.weight(1f)
                                 ) {
                                     Text(
-                                        text = if (sys == NumeralSystem.ARABIC) "عربية (1, 2, 3)" else "مشرقية (١, ٢, ٣)",
+                                        text = if (draftPrefs.language == AppLanguage.ARABIC) sys.labelAr else sys.labelEn,
                                         color = if (isSelected) Color.White else colors.textPrimary,
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold
@@ -954,6 +1173,7 @@ fun SettingsScreen(
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp)
+                        .testTag("btn_restore_defaults")
                         .focusable(interactionSource = resetInteraction)
                 ) {
                     Icon(
@@ -964,7 +1184,7 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "استعادة الإعدادات الافتراضية",
+                        text = AppStrings.restoreDefaults(draftPrefs.language),
                         color = if (isResetFocused) colors.screenBackground else colors.redAccent,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
@@ -988,6 +1208,7 @@ fun SettingsScreen(
                     modifier = Modifier
                         .weight(1.3f)
                         .height(48.dp)
+                        .testTag("btn_save_settings")
                         .focusable(interactionSource = saveInteraction)
                 ) {
                     Icon(
@@ -998,7 +1219,7 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "حفظ وتطبيق التغييرات",
+                        text = AppStrings.saveChanges(draftPrefs.language),
                         color = if (isSaveFocused) colors.screenBackground else Color.White,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.ExtraBold

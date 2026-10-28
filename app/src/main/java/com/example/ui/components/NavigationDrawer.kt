@@ -28,13 +28,21 @@ import androidx.compose.ui.unit.sp
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.TvScreenTab
 
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.example.R
+import com.example.model.AppLanguage
+import com.example.ui.util.AppStrings
+
 @Composable
 fun TvNavigationDrawer(
     isOpen: Boolean,
     currentTab: TvScreenTab,
+    language: AppLanguage = AppLanguage.ARABIC,
     onTabSelected: (TvScreenTab) -> Unit,
     onCloseDrawer: () -> Unit,
     onExitApp: () -> Unit,
+    onToggleLanguage: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val colors = LocalAppColors.current
@@ -64,12 +72,20 @@ fun TvNavigationDrawer(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "حي على الصلاة",
-                            color = colors.goldAccent,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Image(
+                                painter = painterResource(id = R.drawable.app_logo),
+                                contentDescription = "Logo",
+                                modifier = Modifier.size(32.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = AppStrings.appName(language),
+                                color = colors.goldAccent,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                         IconButton(
                             onClick = onCloseDrawer,
                             modifier = Modifier.size(36.dp)
@@ -85,7 +101,7 @@ fun TvNavigationDrawer(
                     Spacer(modifier = Modifier.height(20.dp))
 
                     DrawerItem(
-                        title = "لوحة الصلاة",
+                        title = AppStrings.tabMain(language),
                         icon = Icons.Default.Schedule,
                         isSelected = currentTab == TvScreenTab.MAIN,
                         colors = colors,
@@ -95,7 +111,7 @@ fun TvNavigationDrawer(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     DrawerItem(
-                        title = "علم الفلك والقبلة",
+                        title = AppStrings.tabAstronomy(language),
                         icon = Icons.Default.Explore,
                         isSelected = currentTab == TvScreenTab.ASTRONOMY,
                         colors = colors,
@@ -105,7 +121,7 @@ fun TvNavigationDrawer(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     DrawerItem(
-                        title = "اليوميات والأذكار",
+                        title = AppStrings.tabDailies(language),
                         icon = Icons.Default.MenuBook,
                         isSelected = currentTab == TvScreenTab.DAILIES,
                         colors = colors,
@@ -115,17 +131,29 @@ fun TvNavigationDrawer(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     DrawerItem(
-                        title = "الإعدادات",
+                        title = AppStrings.tabSettings(language),
                         icon = Icons.Default.Settings,
                         isSelected = currentTab == TvScreenTab.SETTINGS,
                         colors = colors,
                         onClick = { onTabSelected(TvScreenTab.SETTINGS) }
                     )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    if (onToggleLanguage != null) {
+                        DrawerItem(
+                            title = if (language == AppLanguage.ARABIC) "English (الإنجليزية)" else "العربية (Arabic)",
+                            icon = Icons.Default.Language,
+                            isSelected = false,
+                            colors = colors,
+                            onClick = onToggleLanguage
+                        )
+                    }
                 }
 
                 // Bottom: Exit App Button
                 DrawerItem(
-                    title = "خروج من التطبيق",
+                    title = AppStrings.exitApp(language),
                     icon = Icons.Default.ExitToApp,
                     isSelected = false,
                     isDestructive = true,

@@ -11,6 +11,11 @@ enum class ImsakVisibility(val labelAr: String, val labelEn: String) {
     NEVER("إخفاء دائماً", "Never")
 }
 
+enum class AppLanguage(val code: String, val labelAr: String, val labelEn: String) {
+    ARABIC("ar", "العربية", "Arabic"),
+    ENGLISH("en", "English", "English")
+}
+
 data class SavedMosque(
     val name: String,
     val url: String
@@ -21,6 +26,7 @@ data class AppPreferences(
     val savedMosques: List<SavedMosque> = listOf(
         SavedMosque(name = "مسجد الخلفاء الراشدين", url = "https://mawaqit.net/ar/ain-tedeles")
     ),
+    val language: AppLanguage = AppLanguage.ARABIC,
     val numeralSystem: NumeralSystem = NumeralSystem.ARABIC,
     val isDarkMode: Boolean = true,
     val athanVolume: Float = 0.8f,
@@ -42,6 +48,7 @@ data class AppPreferences(
             savedMosques = if (preserveMosqueUrl) this.savedMosques else listOf(
                 SavedMosque(name = "مسجد الخلفاء الراشدين", url = "https://mawaqit.net/ar/ain-tedeles")
             ),
+            language = this.language,
             numeralSystem = NumeralSystem.ARABIC,
             isDarkMode = true,
             athanVolume = 0.8f,

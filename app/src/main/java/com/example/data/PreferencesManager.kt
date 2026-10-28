@@ -27,6 +27,7 @@ class PreferencesManager(context: Context) {
     fun updatePreferences(newPrefs: AppPreferences) {
         prefs.edit().apply {
             putString(KEY_MOSQUE_URL, newPrefs.mosqueUrl)
+            putString(KEY_LANGUAGE, newPrefs.language.name)
             putString(KEY_NUMERAL_SYSTEM, newPrefs.numeralSystem.name)
             putBoolean(KEY_IS_DARK_MODE, newPrefs.isDarkMode)
             putFloat(KEY_ATHAN_VOLUME, newPrefs.athanVolume)
@@ -145,11 +146,19 @@ class PreferencesManager(context: Context) {
             offsets[p] = offset
         }
 
+        val languageName = prefs.getString(KEY_LANGUAGE, com.example.model.AppLanguage.ARABIC.name)
+        val language = try {
+            com.example.model.AppLanguage.valueOf(languageName ?: com.example.model.AppLanguage.ARABIC.name)
+        } catch (e: Exception) {
+            com.example.model.AppLanguage.ARABIC
+        }
+
         val savedMosques = loadSavedMosques(mosqueUrl)
 
         return AppPreferences(
             mosqueUrl = mosqueUrl,
             savedMosques = savedMosques,
+            language = language,
             numeralSystem = numeralSystem,
             isDarkMode = isDarkMode,
             athanVolume = volume,
@@ -198,6 +207,7 @@ class PreferencesManager(context: Context) {
     companion object {
         private const val KEY_MOSQUE_URL = "mosque_url"
         private const val KEY_SAVED_MOSQUES = "saved_mosques"
+        private const val KEY_LANGUAGE = "app_language"
         private const val KEY_NUMERAL_SYSTEM = "numeral_system"
         private const val KEY_IS_DARK_MODE = "is_dark_mode"
         private const val KEY_ATHAN_VOLUME = "athan_volume"

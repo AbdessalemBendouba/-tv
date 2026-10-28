@@ -27,6 +27,10 @@ import com.example.ui.viewmodel.PrayerTvUiState
 import com.example.ui.viewmodel.PrayerTvViewModel
 import com.example.ui.viewmodel.TvScreenTab
 
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import com.example.model.AppLanguage
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,107 +38,133 @@ class MainActivity : ComponentActivity() {
         setContent {
             val viewModel: PrayerTvViewModel = viewModel()
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            var showSplash by remember { mutableStateOf(true) }
 
             MyApplicationTheme(darkTheme = uiState.preferences.isDarkMode) {
-                // TV Back button handling
-                BackHandler {
-                    when {
-                        uiState.isDrawerOpen -> viewModel.toggleDrawer(false)
-                        uiState.activeTab != TvScreenTab.MAIN -> viewModel.selectTab(TvScreenTab.MAIN)
-                        else -> finish()
-                    }
+                val layoutDir = if (uiState.preferences.language == AppLanguage.ARABIC) {
+                    LayoutDirection.Rtl
+                } else {
+                    LayoutDirection.Ltr
                 }
 
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = LocalAppColors.current.screenBackground
-                ) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        // Main Tab Views
-                        when (uiState.activeTab) {
-                            TvScreenTab.MAIN -> {
-                                MainBoardScreen(
-                                    uiState = uiState,
-                                    onOpenDrawer = { viewModel.toggleDrawer(true) }
-                                )
-                            }
-                            TvScreenTab.ASTRONOMY -> {
-                                AstronomyScreen(
-                                    uiState = uiState,
-                                    onBack = { viewModel.selectTab(TvScreenTab.MAIN) },
-                                    onOpenDrawer = { viewModel.toggleDrawer(true) }
-                                )
-                            }
-                            TvScreenTab.DAILIES -> {
-                                DailiesScreen(
-                                    uiState = uiState,
-                                    onBack = { viewModel.selectTab(TvScreenTab.MAIN) },
-                                    onOpenDrawer = { viewModel.toggleDrawer(true) },
-                                    onIncrementDhikr = { viewModel.incrementDhikr() },
-                                    onResetDhikr = { viewModel.resetDhikr() }
-                                )
-                            }
-                            TvScreenTab.SETTINGS -> {
-                                SettingsScreen(
-                                    uiState = uiState,
-                                    onBack = { viewModel.selectTab(TvScreenTab.MAIN) },
-                                    onOpenDrawer = { viewModel.toggleDrawer(true) },
-                                    onSavePreferences = { viewModel.updatePreferences(it) },
-                                    onRestoreDefaults = { viewModel.restoreDefaultSettings() },
-                                    onSwitchMosque = { viewModel.switchMosque(it) },
-                                    onAddMosque = { name, url -> viewModel.addMosque(name, url) },
-                                    onDeleteMosque = { viewModel.removeMosque(it) },
-                                    onTestAthan = { viewModel.testAthanSound() },
-                                    onStopAthan = { viewModel.stopAthanSound() }
-                                )
-                            }
+                CompositionLocalProvider(LocalLayoutDirection provides layoutDir) {
+                    // TV Back button handling
+                    BackHandler {
+                        when {
+                            showSplash -> showSplash = false
+                            uiState.isDrawerOpen -> viewModel.toggleDrawer(false)
+                            uiState.activeTab != TvScreenTab.MAIN -> viewModel.selectTab(TvScreenTab.MAIN)
+                            else -> finish()
                         }
+                    }
 
-                        // Side Navigation Rail Drawer Overlay (Accessible on any tab)
-                        TvNavigationDrawer(
-                            isOpen = uiState.isDrawerOpen,
-                            currentTab = uiState.activeTab,
-                            onTabSelected = { viewModel.selectTab(it) },
-                            onCloseDrawer = { viewModel.toggleDrawer(false) },
-                            onExitApp = { finish() }
-                        )
-
-                        // Loading Indicator
-                        if (uiState.isLoading && !uiState.isOnboardingVisible) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(Color.Black.copy(alpha = 0.5f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(color = CelestialGold)
-                            }
-                        }
-
-                        // First Launch Onboarding Dialog with validation
-                        if (uiState.isOnboardingVisible) {
-                            OnboardingDialog(
-                                initialUrl = uiState.preferences.mosqueUrl,
-                                onValidateAndConfirm = { url, callback ->
-                                    viewModel.validateAndSetMosqueUrl(url, callback)
-                                }
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = LocalAppColors.current.screenBackground
+                    ) {
+                        if (showSplash) {
+                            SplashScreen(
+                                language = uiState.preferences.language,
+                                onSplashFinished = { showSplash = false }
                             )
-                        }
+                        } else {
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                // Main Tab Views
+                                when (uiState.activeTab) {
+                                    TvScreenTab.MAIN -> {
+                                        MainBoardScreen(
+                                            uiState = uiState,
+                                            onOpenDrawer = { viewModel.toggleDrawer(true) }
+                                        )
+                                    }
+                                    TvScreenTab.ASTRONOMY -> {
+                                        AstronomyScreen(
+                                            uiState = uiState,
+                                            onBack = { viewModel.selectTab(TvScreenTab.MAIN) },
+                                            onOpenDrawer = { viewModel.toggleDrawer(true) }
+                                        )
+                                    }
+                                    TvScreenTab.DAILIES -> {
+                                        DailiesScreen(
+                                            uiState = uiState,
+                                            onBack = { viewModel.selectTab(TvScreenTab.MAIN) },
+                                            onOpenDrawer = { viewModel.toggleDrawer(true) },
+                                            onIncrementDhikr = { viewModel.incrementDhikr() },
+                                            onResetDhikr = { viewModel.resetDhikr() }
+                                        )
+                                    }
+                                    TvScreenTab.SETTINGS -> {
+                                        SettingsScreen(
+                                            uiState = uiState,
+                                            onBack = { viewModel.selectTab(TvScreenTab.MAIN) },
+                                            onOpenDrawer = { viewModel.toggleDrawer(true) },
+                                            onSavePreferences = { viewModel.updatePreferences(it) },
+                                            onRestoreDefaults = { viewModel.restoreDefaultSettings() },
+                                            onSwitchMosque = { viewModel.switchMosque(it) },
+                                            onAddMosque = { name, url -> viewModel.addMosque(name, url) },
+                                            onDeleteMosque = { viewModel.removeMosque(it) },
+                                            onTestAthan = { viewModel.testAthanSound() },
+                                            onStopAthan = { viewModel.stopAthanSound() }
+                                        )
+                                    }
+                                }
 
-                        // Error Banner Toast
-                        uiState.errorMessage?.let { error ->
-                            if (!uiState.isOnboardingVisible) {
-                                Snackbar(
-                                    modifier = Modifier
-                                        .align(Alignment.BottomCenter)
-                                        .padding(16.dp),
-                                    action = {
-                                        TextButton(onClick = { viewModel.loadSchedule() }) {
-                                            Text("إعادة المحاولة", color = CelestialGold)
+                                // Side Navigation Rail Drawer Overlay (Accessible on any tab)
+                                TvNavigationDrawer(
+                                    isOpen = uiState.isDrawerOpen,
+                                    currentTab = uiState.activeTab,
+                                    language = uiState.preferences.language,
+                                    onTabSelected = { viewModel.selectTab(it) },
+                                    onCloseDrawer = { viewModel.toggleDrawer(false) },
+                                    onExitApp = { finish() },
+                                    onToggleLanguage = {
+                                        val nextLang = if (uiState.preferences.language == AppLanguage.ARABIC) {
+                                            AppLanguage.ENGLISH
+                                        } else {
+                                            AppLanguage.ARABIC
+                                        }
+                                        viewModel.updatePreferences(uiState.preferences.copy(language = nextLang))
+                                    }
+                                )
+
+                                // Loading Indicator
+                                if (uiState.isLoading && !uiState.isOnboardingVisible) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(Color.Black.copy(alpha = 0.5f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator(color = CelestialGold)
+                                    }
+                                }
+
+                                // First Launch Onboarding Dialog with validation
+                                if (uiState.isOnboardingVisible) {
+                                    OnboardingDialog(
+                                        initialUrl = uiState.preferences.mosqueUrl,
+                                        onValidateAndConfirm = { url, callback ->
+                                            viewModel.validateAndSetMosqueUrl(url, callback)
+                                        }
+                                    )
+                                }
+
+                                // Error Banner Toast
+                                uiState.errorMessage?.let { error ->
+                                    if (!uiState.isOnboardingVisible) {
+                                        Snackbar(
+                                            modifier = Modifier
+                                                .align(Alignment.BottomCenter)
+                                                .padding(16.dp),
+                                            action = {
+                                                TextButton(onClick = { viewModel.loadSchedule() }) {
+                                                    Text("إعادة المحاولة", color = CelestialGold)
+                                                }
+                                            }
+                                        ) {
+                                            Text(error, fontSize = 13.sp)
                                         }
                                     }
-                                ) {
-                                    Text(error, fontSize = 13.sp)
                                 }
                             }
                         }

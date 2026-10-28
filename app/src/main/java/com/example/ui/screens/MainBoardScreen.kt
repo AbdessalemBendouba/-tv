@@ -34,6 +34,7 @@ import com.example.model.PrayerType
 import com.example.ui.components.SpecialDayBanner
 import com.example.ui.components.SunSkyArc
 import com.example.ui.theme.*
+import com.example.ui.util.AppStrings
 import com.example.ui.viewmodel.PrayerTvUiState
 
 @Composable
@@ -109,7 +110,7 @@ fun MainBoardScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "القائمة",
+                                text = AppStrings.menu(prefs.language),
                                 color = if (isFocused) colors.goldAccent else colors.textPrimary,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold
@@ -120,13 +121,13 @@ fun MainBoardScreen(
                     // Mosque Title
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = schedule?.mosqueName?.ifBlank { "حي على الصلاة" } ?: "حي على الصلاة",
+                            text = schedule?.mosqueName?.ifBlank { AppStrings.appName(prefs.language) } ?: AppStrings.appName(prefs.language),
                             color = colors.goldAccent,
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "مواقيت الصلاة الرسمية",
+                            text = AppStrings.appSubtitle(prefs.language),
                             color = colors.textSecondary,
                             fontSize = 11.sp
                         )
@@ -234,13 +235,13 @@ fun MainBoardScreen(
                                 ) {
                                     Column {
                                         Text(
-                                            text = "الصلاة القادمة",
+                                            text = AppStrings.nextPrayer(prefs.language),
                                             color = colors.textSecondary,
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Medium
                                         )
                                         Text(
-                                            text = nextP.type.arabicName,
+                                            text = AppStrings.prayerName(nextP.type, prefs.language),
                                             color = colors.primaryAccent,
                                             fontSize = 24.sp,
                                             fontWeight = FontWeight.Bold
@@ -249,7 +250,7 @@ fun MainBoardScreen(
 
                                     Column(horizontalAlignment = Alignment.End) {
                                         Text(
-                                            text = "المتبقي للأذان",
+                                            text = AppStrings.timeToAthan(prefs.language),
                                             color = colors.textSecondary,
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Medium
@@ -308,7 +309,7 @@ fun MainBoardScreen(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = "الصلاة السابقة",
+                                text = AppStrings.previousPrayer(prefs.language),
                                 color = colors.textSecondary,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Medium
@@ -316,7 +317,7 @@ fun MainBoardScreen(
                             Spacer(modifier = Modifier.height(6.dp))
                             if (lastP != null) {
                                 Text(
-                                    text = lastP.type.arabicName,
+                                    text = AppStrings.prayerName(lastP.type, prefs.language),
                                     color = colors.secondaryAccent,
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold
@@ -449,7 +450,7 @@ private fun PrayerRowCard(
     val isNext = item.isNext
     val isCurrent = item.isCurrent
 
-    val label = customLabel ?: item.type.arabicName
+    val label = customLabel ?: AppStrings.prayerName(item.type, prefs.language)
 
     val cardBg = when {
         isFocused -> colors.focusGlow.copy(alpha = 0.25f)
@@ -504,7 +505,7 @@ private fun PrayerRowCard(
                         .padding(horizontal = 4.dp, vertical = 1.dp)
                 ) {
                     Text(
-                        text = "القادمة",
+                        text = if (prefs.language == com.example.model.AppLanguage.ARABIC) "القادمة" else "Next",
                         color = Color.White,
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold

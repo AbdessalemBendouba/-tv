@@ -1,0 +1,43 @@
+name: Build Multi-Architecture Android APKs
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Multi-ABI APKs (armeabi-v7a, arm64-v8a, x86, x86_64, Universal)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x gradlew
+
+      - name: Build Multi-Architecture APKs
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: List Generated APKs
+        run: ls -lh app/build/outputs/apk/debug/
+
+      - name: Upload All APK Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Hayya-Al-Salah-APKs
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
