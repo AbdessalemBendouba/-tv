@@ -1,15 +1,25 @@
-name: Build Multi-Architecture Android APKs
+name: Build & Release Android TV APKs
 
 on:
   push:
     branches: [ main, master ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release Tag (e.g. v1.0.0 or leave empty for auto-versioning)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
 
 jobs:
   build:
-    name: Build Multi-ABI APKs (armeabi-v7a, arm64-v8a, x86, x86_64, Universal)
+    name: Build & Release Multi-Architecture APKs
     runs-on: ubuntu-latest
 
     steps:
@@ -28,16 +38,98 @@ jobs:
       - name: Grant Execute Permission for Gradlew
         run: chmod +x gradlew
 
-      - name: Build Multi-Architecture APKs
-        run: ./gradlew assembleDebug --stacktrace
+      - name: Setup Signing Keystores
+        run: |
+          echo "Generating release keystore (my-upload-key.jks)..."
+          keytool -genkeypair -v \
+            -keystore "$GITHUB_WORKSPACE/my-upload-key.jks" \
+            -alias upload \
+            -keypass hayyaalsalah \
+            -storepass hayyaalsalah \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Hayya Al-Salah,O=Islamic TV,C=DZ"
 
-      - name: List Generated APKs
-        run: ls -lh app/build/outputs/apk/debug/
+          # Copy to app directory so Gradle finds it regardless of path resolution
+          cp "$GITHUB_WORKSPACE/my-upload-key.jks" "$GITHUB_WORKSPACE/app/my-upload-key.jks"
 
-      - name: Upload All APK Artifacts
+          echo "Generating debug keystore (debug.keystore)..."
+          keytool -genkeypair -v \
+            -keystore "$GITHUB_WORKSPACE/debug.keystore" \
+            -alias androiddebugkey \
+            -keypass android \
+            -storepass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+          cp "$GITHUB_WORKSPACE/debug.keystore" "$GITHUB_WORKSPACE/app/debug.keystore"
+
+      - name: Build Release Multi-ABI APKs
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/my-upload-key.jks
+          STORE_PASSWORD: hayyaalsalah
+          KEY_PASSWORD: hayyaalsalah
+        run: ./gradlew assembleRelease --stacktrace
+
+      - name: Prepare User-Friendly Release Filenames
+        run: |
+          mkdir -p release-apks
+          cd app/build/outputs/apk/release/
+          ls -la
+          
+          # Copy and provide user-friendly branded names
+          cp app-universal-release.apk "$GITHUB_WORKSPACE/release-apks/HayyaAlSalah-TV-universal.apk"
+          cp app-armeabi-v7a-release.apk "$GITHUB_WORKSPACE/release-apks/HayyaAlSalah-TV-armeabi-v7a.apk"
+          cp app-arm64-v8a-release.apk "$GITHUB_WORKSPACE/release-apks/HayyaAlSalah-TV-arm64-v8a.apk"
+          cp app-x86-release.apk "$GITHUB_WORKSPACE/release-apks/HayyaAlSalah-TV-x86.apk"
+          cp app-x86_64-release.apk "$GITHUB_WORKSPACE/release-apks/HayyaAlSalah-TV-x86_64.apk"
+          
+          echo "Formatted release APKs:"
+          ls -lh "$GITHUB_WORKSPACE/release-apks/"
+
+      - name: Upload APKs as Workflow Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Hayya-Al-Salah-APKs
-          path: app/build/outputs/apk/debug/*.apk
+          name: Hayya-Al-Salah-Release-APKs
+          path: release-apks/*.apk
           if-no-files-found: error
           retention-days: 30
+
+      - name: Determine Release Tag
+        id: release_info
+        if: github.event_name != 'pull_request'
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.release_tag }}" ]; then
+            TAG="${{ inputs.release_tag }}"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          else
+            TAG="v1.0.${{ github.run_number }}"
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "title=Hayya Al-Salah TV $TAG" >> $GITHUB_OUTPUT
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        if: github.event_name != 'pull_request'
+        with:
+          tag_name: ${{ steps.release_info.outputs.tag }}
+          name: ${{ steps.release_info.outputs.title }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            ## 🕌 حي على الصلاة (Hayya Al-Salah) - Android TV Official Release
+            
+            Ready-to-install Android TV APKs for all hardware CPU architectures:
+            - **Universal APK** (`HayyaAlSalah-TV-universal.apk`): Recommended for all devices and Android smart TVs.
+            - **ARM 32-bit** (`HayyaAlSalah-TV-armeabi-v7a.apk`): For older Android TV boxes and budget streaming sticks.
+            - **ARM 64-bit** (`HayyaAlSalah-TV-arm64-v8a.apk`): For modern Chromecast with Google TV, Xiaomi Mi Box, Nvidia Shield.
+            - **x86 / x86_64** (`HayyaAlSalah-TV-x86.apk`, `HayyaAlSalah-TV-x86_64.apk`): For Android TV emulators and Intel/AMD hardware.
+          files: |
+            release-apks/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
