@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="33.866665mm"
+   height="33.866661mm"
+   viewBox="0 0 33.866665 33.866661"
+   version="1.1"
+   id="svg5"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false" />
+  <defs
+     id="defs2">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient5371">
+      <stop
+         style="stop-color:#662d15;stop-opacity:1;"
+         offset="0.1452381"
+         id="stop5367" />
+      <stop
+         style="stop-color:#664719;stop-opacity:1;"
+         offset="1"
+         id="stop5369" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient4552">
+      <stop
+         style="stop-color:#b34e24;stop-opacity:1;"
+         offset="0.1452381"
+         id="stop4548" />
+      <stop
+         style="stop-color:#cc8e33;stop-opacity:1;"
+         offset="1"
+         id="stop4550" />
+    </linearGradient>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5371"
+       id="radialGradient5381"
+       cx="-57.930145"
+       cy="140.91533"
+       fx="-57.930145"
+       fy="140.91533"
+       r="8.7634106"
+       gradientTransform="translate(0,2.3492712e-5)"
+       gradientUnits="userSpaceOnUse" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4552"
+       id="radialGradient5389"
+       cx="-57.930145"
+       cy="140.91533"
+       fx="-57.930145"
+       fy="140.91533"
+       r="8.7634106"
+       gradientTransform="translate(0,2.3492712e-5)"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(72.696016,-121.81456)">
+    <g
+       id="g5508"
+       inkscape:export-filename="Bronze.svg"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96">
+      <rect
+         style="fill:none;fill-opacity:0.533546;stroke:none;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:20;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+         id="rect2216"
+         width="33.866665"
+         height="33.866665"
+         x="-72.696014"
+         y="121.81455"
+         ry="1.8374527e-05" />
+      <path
+         style="fill:url(#radialGradient5389);fill-opacity:1;stroke:url(#radialGradient5381);stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:bevel;stroke-miterlimit:20;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+         d="m -55.762675,130.07802 -8.669871,8.66987 8.669867,8.66986 8.669866,-8.66987 z"
+         id="path1116" />
+    </g>
+  </g>
+</svg>

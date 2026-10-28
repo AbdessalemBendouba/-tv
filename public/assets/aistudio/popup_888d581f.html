@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Amiri&display=swap" rel="stylesheet">
+  <style>
+    :root { 
+      --bg: #f5f7fa; --card: #ffffff; --text: #333333; --border: #eeeeee; 
+      --primary: #1E88E5; --tab-inactive: #cfd8dc; --danger: #E53935; --wait: #FBC02D;
+      --success: #4CAF50; --muted: #777777;
+    }
+    [data-theme="dark"] { 
+      --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; --border: #333333; 
+      --primary: #64B5F6; --tab-inactive: #424242; --danger: #ef5350; --wait: #FDD835;
+      --success: #81C784; --muted: #aaaaaa;
+    }
+    
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; width: 350px; margin: 0; padding: 0; background: var(--bg); color: var(--text); transition: background 0.2s;}
+    hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
+    
+    /* Tabs Header with 6 tabs spacing optimization */
+    .tabs-header { display: flex; background: var(--card); border-bottom: 1px solid var(--border); }
+    .tab-btn { flex: 1; padding: 8px 0; border: none; background: transparent; color: var(--text); font-weight: bold; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; font-size: 10.5px;}
+    .tab-btn:hover { background: rgba(0,0,0,0.05); }
+    [data-theme="dark"] .tab-btn:hover { background: rgba(255,255,255,0.05); }
+    .tab-btn.active { border-bottom: 3px solid var(--primary); color: var(--primary); }
+    
+    .tab-content { display: none; padding: 15px; }
+    .tab-content.active { display: block; }
+    
+    /* Home Header */
+    .header { text-align: center; margin-bottom: 15px; }
+    .header img { width: 48px; height: 48px; border-radius: 50%; margin-bottom: 5px; box-shadow : #007fff 0 0 15px; }
+    .header h2 { margin: 0; font-size: 18px; color: var(--primary); }
+    #hijri-date { font-size: 12px; color: var(--muted); margin-top: 6px; font-weight: bold; line-height: 1.4; padding: 0 10px; }
+    
+    /* Banners */
+    .ashra-banner { display: none; text-align: center; font-size: 11px; font-weight: bold; color: var(--primary); background: rgba(30, 136, 229, 0.1); border: 1px dashed var(--primary); padding: 6px; border-radius: 6px; margin: 8px 10px; }
+    
+    .card { background: var(--card); padding: 12px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); margin-bottom: 15px; border: 1px solid var(--border); }
+    
+    /* Prayer Rows */
+    .prayer-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .prayer-row:last-child { border-bottom: none; }
+    
+    .prayer-left { display: flex; align-items: center; width: 45%; }
+    .prayer-check { margin-right: 8px; transform: scale(1.2); cursor: pointer; }
+    html[dir="rtl"] .prayer-check { margin-right: 0; margin-left: 8px; }
+    .prayer-name { font-weight: 600; font-size: 14px; }
+    
+    /* Checklist States */
+    .prayer-row.prayed .prayer-name { color: var(--success); text-decoration: none; }
+    .prayer-row.future { opacity: 0.35; }
+    .prayer-row.unprayed { color: var(--muted); }
+    
+    .prayer-time { color: var(--primary); font-weight: bold; font-size: 15px; width: 30%; text-align: center; }
+    .prayer-wait { color: var(--wait); font-size: 11px; font-weight: bold; background: rgba(251, 192, 45, 0.1); padding: 2px 4px; border-radius: 4px; width: 25%; text-align: center;}
+    
+    label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 6px; }
+    input[type="text"], input[type="number"], select { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 12px; background: var(--bg); color: var(--text); }
+    
+    /* Stylized Volume Slider */
+    input[type="range"] { -webkit-appearance: none; width: 100%; background: var(--border); height: 6px; border-radius: 3px; outline: none; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--primary); cursor: pointer; transition: 0.15s; }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.25); }
+
+    .btn { width: 100%; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; margin-bottom: 10px;}
+    .btn:hover { opacity: 0.9; }
+    .btn.danger-btn { background: var(--danger); }
+    
+    .status { text-align: center; font-size: 12px; margin-top: 8px; font-weight: bold; display: none; }
+    
+    /* Progress Gauges Grid */
+    .progress-rings-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 12px 0; text-align: center; }
+    .ring-wrapper { position: relative; width: 70px; margin: 0 auto; }
+    .ring-label { font-size: 10px; font-weight: bold; margin-top: 4px; color: var(--text); }
+    
+    /* Traditional Arabic Hadith Card */
+    .hadith-card { display: none; font-family: 'Amiri', serif; font-size: 14px; font-style: normal; line-height: 1.5; color: var(--text); background: rgba(140, 140, 140, 0.05); border-left: 3px solid var(--primary); padding: 8px; margin-top: 15px; border-radius: 0 6px 6px 0; }
+    html[dir="rtl"] .hadith-card { border-left: none; border-right: 3px solid var(--primary); border-radius: 6px 0 0 6px; }
+    
+    canvas { display: block; margin: 10px auto; background: var(--card); border-radius: 4px; }
+    
+    /* Overlay Confirmation Modal */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-card { background: var(--card); color: var(--text); width: 280px; padding: 20px; border-radius: 12px; border: 1px solid var(--border); text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.2s; }
+    .modal-message { font-size: 13px; font-weight: bold; margin-bottom: 20px; line-height: 1.4; }
+    .modal-buttons { display: flex; gap: 10px; justify-content: center; }
+    .modal-btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    
+    /* Legend Styles */
+    .legend-container { display: flex; justify-content: space-around; font-size: 10px; font-weight: bold; margin: 8px 0; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    .legend-item { display: flex; align-items: center; gap: 4px; }
+    .legend-color { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+    /* Astro Tab Layout styles */
+    .astro-flex { display: flex; align-items: center; justify-content: space-around; padding: 5px 0; }
+    .astro-text { font-size: 12px; font-weight: bold; width: 60%; }
+    .moon-img-frame { width: 64px; height: 64px; border-radius: 50%; box-shadow: 0 0 15px rgba(255,255,255,0.15); background: #000; }
+    
+    /* Qada Counter grid design */
+    .qada-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .qada-row:last-child { border-bottom: none; }
+    .qada-name { font-weight: bold; font-size: 14px; width: 35%; }
+    .qada-controls { display: flex; align-items: center; gap: 8px; width: 65%; justify-content: flex-end; }
+    .qada-val { font-size: 15px; font-weight: 800; color: var(--primary); min-width: 30px; text-align: center; }
+    .qada-btn { width: 28px; height: 28px; border-radius: 4px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-weight: bold; cursor: pointer; }
+    
+    .test-warning { font-size: 11px; text-align: center; color: var(--danger); margin-bottom: 10px; font-weight: bold;}
+  </style>
+</head>
+<body>
+
+  <div class="tabs-header">
+    <button class="tab-btn active" data-target="home-tab" id="tab-home">Home</button>
+    <button class="tab-btn" data-target="qada-tab" id="tab-qada">Qada</button>
+    <button class="tab-btn" data-target="stats-tab" id="tab-stats">Stats</button>
+    <button class="tab-btn" data-target="astro-tab" id="tab-astro">Astronomy</button>
+    <button class="tab-btn" data-target="dailies-tab" id="tab-dailies">Dailies</button>
+    <button class="tab-btn" data-target="settings-tab" id="tab-settings">Settings</button>
+    <button class="tab-btn" data-target="test-tab" style="color:var(--danger)">Test</button>
+  </div>
+
+  <!-- HOME TAB -->
+  <div id="home-tab" class="tab-content active">
+    <div class="header">
+      <img src="icon.png" alt="App Icon">
+      <h2 id="app-title">حي على الصلاة</h2>
+      <div id="mosque-name"></div>
+      <div id="hijri-date"></div>
+      
+      <!-- Banners -->
+      <div class="ashra-banner" id="ashra-display"></div>
+      <div class="ashra-banner" id="eid-display" style="background: rgba(76, 175, 80, 0.15); border-color: var(--success); color: var(--success);"></div>
+    </div>
+
+    <!-- Live Real-Time Ticking Countdown Card -->
+    <div class="card" style="text-align: center; border: 1px solid var(--primary); background: rgba(30, 136, 229, 0.04); margin-bottom:12px;">
+      <div id="countdown-label" style="font-size: 12px; font-weight: bold; color: var(--primary);">Next Prayer</div>
+      <div id="countdown-clock" style="font-size: 20px; font-weight: 800; color: var(--success); margin-top: 5px;">--h --m --s</div>
+    </div>
+
+    <!-- Outstanding Qada' Quick Reminder Card -->
+    <div class="card" id="qada-reminder-card" style="display:none; text-align:center; border: 1px dashed var(--danger); background: rgba(229, 57, 53, 0.04); margin-bottom:12px;">
+      <div id="qada-reminder-title" style="font-size: 11px; font-weight: bold; color: var(--danger); margin-bottom: 5px;">Outstanding Qada' Debts</div>
+      <div id="qada-reminder-counts" style="font-size: 13px; font-weight: bold; display: flex; justify-content: space-around;"></div>
+    </div>
+
+    <!-- Elapsed Interval Progress Card -->
+    <div class="card" id="interval-progress-card" style="padding:10px 12px; margin-bottom:15px; border:1px solid var(--border);">
+      <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:bold; margin-bottom:5px;">
+        <span id="progress-start" style="color:var(--muted);">--</span>
+        <span id="progress-percent" style="color:var(--primary);">0%</span>
+        <span id="progress-end" style="color:var(--muted);">--</span>
+      </div>
+      <div style="width:100%; height:8px; background:var(--border); border-radius:4px; overflow:hidden;">
+        <div id="progress-bar" style="width:0%; height:100%; background:var(--primary); transition:width 0.5s;"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="prayer-row" id="imsak-row" style="display: none;">
+        <div class="prayer-left">
+          <span class="prayer-name" id="imsak-lbl">Imsak</span>
+        </div>
+        <span class="prayer-time" id="imsak-time">--:--</span>
+        <span class="prayer-wait" id="imsak-wait-label">RAMADAN</span>
+      </div>
+      
+      <!-- Interactive Checklist Rows -->
+      <div class="prayer-row" id="row-Fajr">
+        <div class="prayer-left">
+          <input type="checkbox" class="prayer-check" id="check-Fajr" data-prayer="Fajr">
+          <span class="prayer-name" id="fajr-lbl">Fajr</span>
+        </div>
+        <span class="prayer-time" id="fajr-time">--:--</span>
+        <span class="prayer-wait" id="fajr-wait"></span>
+      </div>
+      
+      <div class="prayer-row" id="row-Dhuhr">
+        <div class="prayer-left">
+          <input type="checkbox" class="prayer-check" id="check-Dhuhr" data-prayer="Dhuhr">
+          <span class="prayer-name" id="dhuhr-lbl">Dhuhr</span>
+        </div>
+        <span class="prayer-time" id="dhuhr-time">--:--</span>
+        <span class="prayer-wait" id="dhuhr-wait"></span>
+      </div>
+      
+      <div class="prayer-row" id="row-Asr">
+        <div class="prayer-left">
+          <input type="checkbox" class="prayer-check" id="check-Asr" data-prayer="Asr">
+          <span class="prayer-name" id="asr-lbl">Asr</span>
+        </div>
+        <span class="prayer-time" id="asr-time">--:--</span>
+        <span class="prayer-wait" id="asr-wait"></span>
+      </div>
+      
+      <div class="prayer-row" id="row-Maghrib">
+        <div class="prayer-left">
+          <input type="checkbox" class="prayer-check" id="check-Maghrib" data-prayer="Maghrib">
+          <span class="prayer-name" id="maghrib-lbl">Maghrib</span>
+        </div>
+        <span class="prayer-time" id="maghrib-time">--:--</span>
+        <span class="prayer-wait" id="maghrib-wait"></span>
+      </div>
+      
+      <div class="prayer-row" id="row-Isha">
+        <div class="prayer-left">
+          <input type="checkbox" class="prayer-check" id="check-Isha" data-prayer="Isha">
+          <span class="prayer-name" id="isha-lbl">Isha</span>
+        </div>
+        <span class="prayer-time" id="isha-time">--:--</span>
+        <span class="prayer-wait" id="isha-wait"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAILIES TAB -->
+  <div id="dailies-tab" class="tab-content">
+    
+    <!-- Daily Quran Ayah Card -->
+    <div class="card hadith-card" id="quran-box" style="display:block; margin-top:0;">
+      <div class="stats-title" id="quran-title" style="margin-bottom:8px;"></div>
+      <div id="quran-text" style="font-family:'Amiri', serif; font-size:14px; color:var(--text); line-height:1.5;"></div>
+      <div id="quran-translation" style="font-size:11px; color:var(--muted); margin-top:8px;"></div>
+      <div id="quran-reference" style="font-size:10px; font-weight:bold; margin-top:5px; text-align:right;"></div>
+    </div>
+
+    <!-- Daily Du'a Card -->
+    <div class="card hadith-card" id="dua-box" style="display:block;">
+      <div class="stats-title" id="dua-title" style="margin-bottom:8px;">Daily Du'a</div>
+      <div id="dua-arabic" style="font-family:'Amiri', serif; font-size:14px; color:var(--text); line-height:1.5;"></div>
+      <div id="dua-translation" style="font-size:11px; color:var(--muted); margin-top:8px;"></div>
+      <div id="dua-reference" style="font-size:10px; font-weight:bold; margin-top:5px; text-align:right;"></div>
+    </div>
+
+    <!-- Daily Dhikr / Tasbih Card -->
+    <div class="card" id="dhikr-card" style="text-align: center;">
+      <div class="stats-title" id="dhikr-title">Daily Dhikr</div>
+      <div id="dhikr-arabic" style="font-family:'Amiri', serif; font-size:18px; font-weight:bold; color:var(--primary); margin:8px 0;"></div>
+      <div id="dhikr-translation" style="font-size:12px; color:var(--muted); margin-bottom:12px;"></div>
+      <div style="display:flex; align-items:center; justify-content:center; gap:15px;">
+        <button id="dhikr-count-btn" style="width:60px; height:60px; border-radius:50%; background:var(--primary); color:white; font-size:20px; font-weight:bold; border:none; cursor:pointer; box-shadow: 0 4px 10px rgba(30,136,229,0.3); outline:none;">0</button>
+        <button id="dhikr-reset-btn" style="background:transparent; border:none; color:var(--danger); cursor:pointer; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; outline:none; padding:0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Daily Hadith Card -->
+    <div class="card hadith-card" id="hadith-box" style="display:block;">
+      <div class="stats-title" id="hadith-title" style="margin-bottom:8px;"></div>
+      <div id="hadith-text"></div>
+      <div id="hadith-source" style="font-size:11px; font-weight:bold; margin-top:5px; text-align:right;"></div>
+    </div>
+
+  </div>
+
+  <!-- QADA TAB -->
+  <div id="qada-tab" class="tab-content">
+    
+    <!-- Qada' Completion Assistant Card -->
+    <div class="card">
+      <div class="stats-title" id="qada-title">Qada' Makeup Assistant</div>
+      <div id="qada-assistant-content" style="font-size:11px; color:var(--muted); line-height:1.5; margin-top:8px;"></div>
+    </div>
+
+    <!-- Ledger Card (Daftar Elqada') -->
+    <div class="card">
+      <div class="stats-title" id="ledger-title">Daftar Elqada' (Makeup Ledger)</div>
+      <div id="ledger-container" style="max-height: 180px; overflow-y: auto; margin-top: 8px;">
+        <!-- Populated dynamically with checklist dates -->
+      </div>
+    </div>
+
+    <!-- Manual Backlog Card -->
+    <div class="card">
+      <div class="stats-title" id="backlog-title">Manual Qada' Backlog</div>
+      <div class="qada-row">
+        <span class="qada-name" id="qada-fajr">Fajr</span>
+        <div class="qada-controls">
+          <button class="qada-btn" data-prayer="Fajr" data-action="dec">-</button>
+          <span class="qada-val" id="qada-val-Fajr">0</span>
+          <button class="qada-btn" data-prayer="Fajr" data-action="inc">+</button>
+        </div>
+      </div>
+      <div class="qada-row">
+        <span class="qada-name" id="qada-dhuhr">Dhuhr</span>
+        <div class="qada-controls">
+          <button class="qada-btn" data-prayer="Dhuhr" data-action="dec">-</button>
+          <span class="qada-val" id="qada-val-Dhuhr">0</span>
+          <button class="qada-btn" data-prayer="Dhuhr" data-action="inc">+</button>
+        </div>
+      </div>
+      <div class="qada-row">
+        <span class="qada-name" id="qada-asr">Asr</span>
+        <div class="qada-controls">
+          <button class="qada-btn" data-prayer="Asr" data-action="dec">-</button>
+          <span class="qada-val" id="qada-val-Asr">0</span>
+          <button class="qada-btn" data-prayer="Asr" data-action="inc">+</button>
+        </div>
+      </div>
+      <div class="qada-row">
+        <span class="qada-name" id="qada-maghrib">Maghrib</span>
+        <div class="qada-controls">
+          <button class="qada-btn" data-prayer="Maghrib" data-action="dec">-</button>
+          <span class="qada-val" id="qada-val-Maghrib">0</span>
+          <button class="qada-btn" data-prayer="Maghrib" data-action="inc">+</button>
+        </div>
+      </div>
+      <div class="qada-row">
+        <span class="qada-name" id="qada-isha">Isha</span>
+        <div class="qada-controls">
+          <button class="qada-btn" data-prayer="Isha" data-action="dec">-</button>
+          <span class="qada-val" id="qada-val-Isha">0</span>
+          <button class="qada-btn" data-prayer="Isha" data-action="inc">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS TAB -->
+  <div id="stats-tab" class="tab-content">
+    
+    <!-- Holy Streak Flame Card -->
+    <div class="card" id="streak-card" style="text-align: center; border: 1px solid #FF9800; background: rgba(255, 152, 0, 0.05); box-shadow: 0 0 10px rgba(255, 152, 0, 0.1);">
+      <div class="stats-title" id="streak-hub-title" style="color: #FF9800; border-color: #FF9800;">السلسلة المباركة / Holy Streak</div>
+      <div style="display: flex; align-items: center; justify-content: space-around; margin: 10px 0;">
+        <img class="moon-img-frame" id="streak-badge-img" src="none.png" style="width: 48px; height: 48px; filter: none; background: transparent; box-shadow: none;">
+        <div style="text-align: left; width: 65%;">
+          <div style="font-weight: bold; font-size: 14px; color: var(--text);" id="curr-streak-label">Current Streak: <span id="current-streak-val" style="color: #FF9800; font-size: 18px; font-weight: 800;">0 Days</span></div>
+          <div style="font-size: 12px; color: var(--muted); margin-top: 4px; font-weight: bold;" id="long-streak-label">Longest Streak: <span id="longest-streak-val">0 Days</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="text-align: center;">
+      <div class="stats-title" id="weekly-avg-title">Tracking Progress Gauges</div>
+      
+      <div class="progress-rings-grid">
+        <div class="ring-wrapper">
+          <canvas id="ring-day" width="70" height="70"></canvas>
+          <div class="ring-label" id="lbl-ring-day">Today</div>
+        </div>
+        <div class="ring-wrapper">
+          <canvas id="ring-week" width="70" height="70"></canvas>
+          <div class="ring-label" id="lbl-ring-week">Week</div>
+        </div>
+        <div class="ring-wrapper">
+          <canvas id="ring-month" width="70" height="70"></canvas>
+          <div class="ring-label" id="lbl-ring-month">Month</div>
+        </div>
+        <div class="ring-wrapper">
+          <canvas id="ring-year" width="70" height="70"></canvas>
+          <div class="ring-label" id="lbl-ring-year">Year</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stats-title" id="sliding-charts-title">Analysis Dashboards</div>
+      
+      <div style="font-size:11px; font-weight:bold; margin-top:5px;" id="week-chart-lbl">Rolling 7-Day Window</div>
+      <canvas id="weekly-bar-chart" width="300" height="90"></canvas>
+      
+      <div style="font-size:11px; font-weight:bold; margin-top:5px;" id="month-chart-lbl">Rolling 30-Day Window</div>
+      <canvas id="monthly-bar-chart" width="300" height="90"></canvas>
+
+      <div style="font-size:11px; font-weight:bold; margin-top:5px;" id="year-chart-lbl">Monthly Averages (Yearly Trend)</div>
+      <canvas id="yearly-bar-chart" width="300" height="90"></canvas>
+    </div>
+  </div>
+
+  <!-- ASTRONOMY TAB -->
+  <div id="astro-tab" class="tab-content">
+    
+    <!-- Moon Phase Tracker Card -->
+    <div class="card">
+      <div class="stats-title" id="moon-phase-title">Hijri Moon Phase</div>
+      <div class="astro-flex">
+        <img class="moon-img-frame" id="moon-image" src="new-moon.png" alt="Moon Phase">
+        <div class="astro-text">
+          <div id="moon-name-display" style="font-size:14px; color:var(--primary);">New Moon</div>
+          <div id="hijri-date-display" style="font-size:11px; color:var(--muted); margin-top:4px;">-- -- 1447</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sun in the Sky Celestial Card -->
+    <div class="card">
+      <div class="stats-title" id="sun-sky-title">Sun Position in the Sky</div>
+      <canvas id="sun-sky-chart" width="300" height="100"></canvas>
+    </div>
+
+    <!-- Spherical Trigonometric Qibla Compass Card -->
+    <div class="card">
+      <div class="stats-title" id="qibla-title">Qibla Compass</div>
+      <div class="astro-flex">
+        <canvas id="qibla-compass" width="120" height="120"></canvas>
+        <div class="astro-text">
+          <div id="qibla-direction-label" style="font-size:14px; color:var(--primary);">Kaaba Direction</div>
+          <div id="qibla-angle-display" style="font-size:12px; color:var(--muted); margin-top:4px;">Qibla: --°</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AccuWeather-Style Multi-Line Trend Chart -->
+    <div class="card">
+      <div class="stats-title" id="accuweather-title">7-Day Prayer Trend</div>
+      
+      <!-- Interactive Color Legend -->
+      <div class="legend-container">
+        <div class="legend-item"><span class="legend-color" style="background:#E53935;"></span><span id="leg-fajr">Fajr</span></div>
+        <div class="legend-item"><span class="legend-color" style="background:#F57C00;"></span><span id="leg-dhuhr">Dhuhr</span></div>
+        <div class="legend-item"><span class="legend-color" style="background:#FBC02D;"></span><span id="leg-asr">Asr</span></div>
+        <div class="legend-item"><span class="legend-color" style="background:#4CAF50;"></span><span id="leg-maghrib">Maghrib</span></div>
+        <div class="legend-item"><span class="legend-color" style="background:#1E88E5;"></span><span id="leg-isha">Isha</span></div>
+      </div>
+
+      <div style="font-size:11px; font-weight:bold; margin-top:5px;" id="week-trend-lbl">Weekly Drift Map (Today + 6 Days)</div>
+      <canvas id="weekly-trend-chart" width="300" height="150"></canvas>
+      
+      <div style="font-size:11px; font-weight:bold; margin-top:15px;" id="month-trend-lbl">Monthly Drift Map (Today + 29 Days)</div>
+      <canvas id="monthly-trend-chart" width="300" height="150"></canvas>
+
+      <div style="font-size:11px; font-weight:bold; margin-top:15px;" id="year-trend-lbl">Yearly Drift Map (12 Months Overview)</div>
+      <canvas id="yearly-trend-chart" width="300" height="150"></canvas>
+    </div>
+
+  </div>
+
+  <!-- SETTINGS TAB (Reorganized Order as explicitly Requested) -->
+  <div id="settings-tab" class="tab-content">
+    <div class="card">
+      <!-- 1. Mosque Link -->
+      <label id="url-label">رابط المسجد (مواقيت):</label>
+      <input type="text" id="url" placeholder="https://mawaqit.net/...">
+      
+      <hr> <!-- Separator -->
+
+      <!-- 2. Imsak Visibility settings -->
+      <label id="imsak-config-label">إظهار الإمساك:</label>
+      <select id="imsak-config">
+        <option value="always">دائماً</option>
+        <option value="ramadan_only">في رمضان فقط</option>
+      </select>
+
+      <!-- 3. Eid celebration days -->
+      <label id="eid-days-label">Eid Celebration Days:</label>
+      <input type="number" id="eid-days" min="1" max="10" value="3">
+
+      <!-- 4. Correct Hijri date -->
+      <label id="hijri-corrector-label">تصحيح التاريخ الهجري (بالأيام):</label>
+      <input type="number" id="hijri-corrector" min="-5" max="5" value="0">
+
+      <!-- 5. Correct individual prayer times -->
+      <label id="offsets-title-lbl">Prayer Time Offsets (Minutes):</label>
+      <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:4px; margin-bottom:12px;">
+        <div><label style="font-size:10px;" id="off-fajr">Fajr</label><input type="number" id="offset-Fajr" min="-15" max="15" value="0" style="padding:4px; font-size:11px; margin:0;"></div>
+        <div><label style="font-size:10px;" id="off-dhuhr">Dhuhr</label><input type="number" id="offset-Dhuhr" min="-15" max="15" value="0" style="padding:4px; font-size:11px; margin:0;"></div>
+        <div><label style="font-size:10px;" id="off-asr">Asr</label><input type="number" id="offset-Asr" min="-15" max="15" value="0" style="padding:4px; font-size:11px; margin:0;"></div>
+        <div><label style="font-size:10px;" id="off-maghrib">Maghrib</label><input type="number" id="offset-Maghrib" min="-15" max="15" value="0" style="padding:4px; font-size:11px; margin:0;"></div>
+        <div><label style="font-size:10px;" id="off-isha">Isha</label><input type="number" id="offset-Isha" min="-15" max="15" value="0" style="padding:4px; font-size:11px; margin:0;"></div>
+      </div>
+
+      <!-- 6. Qada Daily commitments inputs -->
+      <label id="qada-commit-title-lbl">Daily Qada' Makeup Commitment:</label>
+      <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:4px; margin-bottom:12px;">
+        <div><label style="font-size:10px;" id="commit-fajr">Fajr</label><input type="number" id="commit-Fajr" min="0" max="10" value="0" style="padding:4px; font-size:11px; margin:0;"></div>
+        <div><label style="font-size:10px;" id="commit-dhuhr">Dhuhr</label><input type="number" id="commit-Dhuhr" min="0" max="10" value="0" style="padding:4px; font-size:11px; margin:0;"></div>
+        <div><label style="font-size:10px;" id="commit-asr">Asr</label><input type="number" id="commit-Asr" min="0" max="10" value="0" style="padding:4px; font-size:11px; margin:0;"></div>
+        <div><label style="font-size:10px;" id="commit-maghrib">Maghrib</label><input type="number" id="commit-Maghrib" min="0" max="10" value="0" style="padding:4px; font-size:11px; margin:0;"></div>
+        <div><label style="font-size:10px;" id="commit-isha">Isha</label><input type="number" id="commit-Isha" min="0" max="10" value="0" style="padding:4px; font-size:11px; margin:0;"></div>
+      </div>
+
+      <hr> <!-- Separator -->
+
+      <!-- 6. Athan volume slider & test voice button -->
+      <label id="volume-label">صوت الأذان:</label>
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+        <span id="volume-display" style="font-size:12px; font-weight:bold; color:var(--primary); width:35px; text-align:center;">50%</span>
+        <input type="range" id="volume-slider" min="0" max="100" value="50" style="flex:1;">
+        <!-- Test voice of athan for exactly 3 minutes -->
+        <button id="test-volume-btn" style="background:var(--primary); border:none; color:white; border-radius:4px; padding:6px 10px; font-size:11px; font-weight:bold; cursor:pointer;">🔊</button>
+      </div>
+
+      <!-- 7. Pre-Athan reminder settings -->
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+        <input type="checkbox" id="pre-athan-enable" style="width:auto; margin:0; transform:scale(1.15); cursor:pointer;">
+        <label id="pre-athan-label" for="pre-athan-enable" style="margin:0; font-size:13px; font-weight:bold; cursor:pointer;">تفعيل التذكير قبل الأذن</label>
+      </div>
+      
+      <div id="pre-athan-time-container" style="transition: opacity 0.2s ease 0s; opacity: 1; pointer-events: auto;">
+        <label id="pre-athan-time-label">وقت التذكير (بالدقائق قبل الأذان):</label>
+        <input type="number" id="pre-athan-mins" min="1" max="59" value="10">
+      </div>
+
+      <hr> <!-- Separator -->
+
+      <!-- 8. Language and Theme -->
+      <label id="lang-label">اللغة:</label>
+      <select id="lang">
+        <option value="ar">العربية</option>
+        <option value="en">English</option>
+      </select>
+
+      <label id="theme-label">المظهر:</label>
+      <select id="theme">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+
+      <hr> <!-- Separator -->
+
+      <!-- 9. Form Buttons -->
+      <button class="btn" id="save-btn">حفظ وتحديث</button>
+      <button class="btn" id="export-btn" style="background:#0288D1;">تصدير سجل الصلوات (CSV)</button>
+      <button class="btn" id="default-settings-btn" style="background:#455A64;">Restore Default Settings</button>
+      <button class="btn danger-btn" id="clear-stats-btn">تصفير الإحصائيات</button>
+      <div id="status" class="status" style="display: none; color: green;">تم الحفظ بنجاح!</div>
+    </div>
+  </div>
+
+  <!-- TEST TAB -->
+  <div id="test-tab" class="tab-content">
+    <div class="card">
+      <div class="test-warning">⚠️ Temporary Development Suite</div>
+      <button class="btn test-btn" id="test-athan">🔊 Test Normal Athan</button>
+      <button class="btn test-btn" id="test-athan-fajr">🔊 Test Fajr Athan</button>
+      <button class="btn test-btn" id="test-iqama">🟨 Test Yellow Iqama Badge</button>
+      <button class="btn test-btn" id="test-friday">Simulate Friday (Jumu'ah)</button>
+      
+      <div style="font-size:11px; font-weight:bold; margin:5px 0;">Force Checkbox States:</div>
+      <button class="btn test-btn" id="force-enable-chk" style="background:#5E35B1; margin-bottom:5px;">Force Enable All Checkboxes</button>
+      <button class="btn test-btn" id="force-disable-chk" style="background:#5E35B1; margin-bottom:5px;">Force Disable All Checkboxes</button>
+      <button class="btn test-btn" id="force-future-chk" style="background:#5E35B1; margin-bottom:5px;">Force Futurize All Checkboxes</button>
+
+      <div style="font-size:11px; font-weight:bold; margin:5px 0;">Ramadan Simulator:</div>
+      <button class="btn test-btn" id="test-ram-1" style="background:#0288D1; margin-bottom:5px;">Simulate Day 5 (Mercy Ashra)</button>
+      <button class="btn test-btn" id="test-ram-2" style="background:#0288D1; margin-bottom:5px;">Simulate Day 15 (Forgiveness Ashra)</button>
+      <button class="btn test-btn" id="test-ram-3" style="background:#0288D1; margin-bottom:5px;">Simulate Day 25 (Hellfire Ashra)</button>
+
+      <div style="font-size:11px; font-weight:bold; margin:5px 0;">Eid Simulator:</div>
+      <button class="btn test-btn" id="test-eid-fitr" style="background:#43A047; margin-bottom:5px;">Simulate Eid al-Fitr (Day 1)</button>
+      <button class="btn test-btn" id="test-eid-adha" style="background:#43A047; margin-bottom:5px;">Simulate Eid al-Adha (Day 2)</button>
+
+	  <div style="font-size:11px; font-weight:bold; margin:5px 0;">Qada' Simulators:</div>
+      <button class="btn test-btn" id="test-qada-backlog" style="background:#8D6E63; margin-bottom:5px;">Simulate Qada' Backlog</button>
+      <button class="btn test-btn" id="test-qada-history" style="background:#8D6E63; margin-bottom:5px;">Simulate Missed History (Ledger)</button>
+      <button class="btn test-btn" id="test-qada-commit" style="background:#8D6E63; margin-bottom:5px;">Simulate Qada' Commitments</button>
+
+      <div style="font-size:11px; font-weight:bold; margin:5px 0;">Islamic Event Banners Simulator:</div>
+      <button class="btn test-btn" id="test-event-newyear" style="background:#00796B; margin-bottom:5px;">Simulate 1 Muharram (Islamic New Year)</button>
+      <button class="btn test-btn" id="test-event-ashura" style="background:#00796B; margin-bottom:5px;">Simulate 10 Muharram (Ashura)</button>
+      <button class="btn test-btn" id="test-event-mawlid" style="background:#00796B; margin-bottom:5px;">Simulate 12 Rabi' I (Mawlid al-Nabi)</button>
+      <button class="btn test-btn" id="test-event-isra" style="background:#00796B; margin-bottom:5px;">Simulate 27 Rajab (Isra' &amp; Mi'raj)</button>
+      <button class="btn test-btn" id="test-event-shaban" style="background:#00796B; margin-bottom:5px;">Simulate 15 Sha'ban (Mid-Sha'ban)</button>
+      <button class="btn test-btn" id="test-event-arafah" style="background:#00796B; margin-bottom:5px;">Simulate 9 Dhu al-Hijjah (Day of Arafah)</button>
+
+      <div style="font-size:11px; font-weight:bold; margin:5px 0;">Tracker Data Injectors:</div>
+      <button class="btn test-btn" id="inject-data-btn" style="background:#388E3C;">Inject 365 Days of Mock Data</button>
+      <button class="btn test-btn" id="rollover-trigger-btn" style="background:#F57C00;">Force Next-Day Rollover (Fajr)</button>
+
+      <div style="font-size:11px; font-weight:bold; margin:5px 0;">Streak Overrides (Bronze, Silver, Gold, Diamond):</div>
+      <button class="btn test-btn" id="test-streak-bronze" style="background:#D84315; margin-bottom:5px;">Simulate 3-Day Streak (Bronze 🥉)</button>
+      <button class="btn test-btn" id="test-streak-silver" style="background:#D84315; margin-bottom:5px;">Simulate 7-Day Streak (Silver 🥈)</button>
+      <button class="btn test-btn" id="test-streak-gold" style="background:#D84315; margin-bottom:5px;">Simulate 30-Day Streak (Gold 🥇)</button>
+      <button class="btn test-btn" id="test-streak-diamond" style="background:#D84315; margin-bottom:5px;">Simulate 90-Day Streak (Diamond 💎)</button>
+      
+      <div style="font-size:11px; font-weight:bold; margin:5px 0;">Reset All Simulations:</div>
+      <button class="btn test-btn" id="revert-tests-btn" style="background:#d32f2f;">Revert All Test Simulations</button>
+    </div>
+  </div>
+
+  <!-- Custom Confirmation Modal Overlay -->
+  <div id="confirm-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div id="modal-message" class="modal-message">Confirm action?</div>
+      <div class="modal-buttons">
+        <button class="modal-btn" id="modal-confirm" style="background:var(--danger); color:#fff;">Confirm</button>
+        <button class="modal-btn" id="modal-cancel" style="background:var(--muted); color:#fff;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+
+</body></html>
